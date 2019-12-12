@@ -1,4 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
+   RELEASE VERSION 1.01 -- 12th December 2019
 
 MIT License
 
@@ -29,15 +30,16 @@ SOFTWARE.
 #include <csignal>
 #include <ctime>
 #include <fstream>
+#include <sstream>
 
 #ifdef GURU_USING_CONSOLE
 #include <cstdio>
 #endif
+
 #ifdef GURU_USING_CURSES
 #include <curses.h>
 #include <panel.h>
 #endif
-#include <sstream>
 
 #define CASCADE_THRESHOLD		20	// The amount cascade_count can reach within CASCADE_TIMEOUT seconds before it triggers an abort screen.
 #define CASCADE_TIMEOUT			30	// The number of seconds without an error to reset the cascade timer.
@@ -46,16 +48,6 @@ SOFTWARE.
 #define CASCADE_WEIGHT_WARNING	1	// The amount a warning type log entry will add to the cascade timer.
 #define COLOUR_PAIR_RED			1	// If using Curses, set this to the colour pair number which is red on a black background.
 #define FILENAME_LOG			"log.txt"
-
-/*
-#include "filex.h"
-#include "io.h"
-#include "strx.h"
-
-#include <memory>
-
-using std::string;
-*/
 
 // Stack trace system.
 std::stack<const char*>	StackTrace::funcs;
