@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.21 -- 15th December 2019
+   RELEASE VERSION 1.22 -- 15th December 2019
 
 MIT License
 
@@ -26,15 +26,19 @@ SOFTWARE.
 
 #pragma once
 
+#include <exception>
+#include <stack>
+#include <string>
+
+
+namespace guru
+{
+
 #define GURU_MEDITATION_VERSION	121
 
 // Uncomment either ONE or NEITHER of these lines, depending on if you are using PDCurses/NCurses, or if your application is a non-Curses console app.
 #define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
 //#define GURU_USING_CONSOLE	// Uncomment this only if you are compiling a console-based application which is NOT using PDCurses or NCurses.
-
-#include <exception>
-#include <stack>
-#include <string>
 
 // The stack-trace system. The advantage of this over traditional debug methods is that we can still strip symbol information (to keep the binary size down),
 // and it'll generate useful information in the log file even for regular players, rather than only when compiled/running in 'debug mode'.
@@ -44,7 +48,7 @@ struct StackTrace
 	~StackTrace();
 	static std::stack<const char*> funcs;
 };
-#define stack_trace()	StackTrace local_stack(__PRETTY_FUNCTION__)
+#define stack_trace()	guru::StackTrace local_stack(__PRETTY_FUNCTION__)
 
 
 #define GURU_INFO		0	// General logging information.
@@ -52,10 +56,6 @@ struct StackTrace
 #define GURU_ERROR		2	// Serious errors. Shit is going down.
 #define GURU_CRITICAL	3	// Critical system failure.
 #define GURU_STACK		4	// Stack traces.
-
-
-namespace guru
-{
 
 void	affirm(int condition, std::string error);	// Like assert(), but calls a Guru halt() if the condition is false.
 void	close_syslog();				// Closes the Guru log file.

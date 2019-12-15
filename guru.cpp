@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.21 -- 15th December 2019
+   RELEASE VERSION 1.22 -- 15th December 2019
 
 MIT License
 
@@ -41,6 +41,9 @@ SOFTWARE.
 #include <panel.h>
 #endif
 
+namespace guru
+{
+
 #define CASCADE_THRESHOLD		20	// The amount cascade_count can reach within CASCADE_TIMEOUT seconds before it triggers an abort screen.
 #define CASCADE_TIMEOUT			30	// The number of seconds without an error to reset the cascade timer.
 #define CASCADE_WEIGHT_CRITICAL	4	// The amount a critical type log entry will add to the cascade timer.
@@ -53,9 +56,6 @@ SOFTWARE.
 std::stack<const char*>	StackTrace::funcs;
 StackTrace::StackTrace(const char *func) { funcs.push(func); }
 StackTrace::~StackTrace() { if (!funcs.empty()) funcs.pop(); }
-
-namespace guru
-{
 
 unsigned int	cascade_count = 0;		// Keeps track of rapidly-occurring, non-fatal error messages.
 bool			cascade_failure = false;	// Is a cascade failure in progress?
