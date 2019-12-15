@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.2 -- 15th December 2019
+   RELEASE VERSION 1.21 -- 15th December 2019
 
 MIT License
 
@@ -26,12 +26,13 @@ SOFTWARE.
 
 #pragma once
 
-#define GURU_MEDITATION_VERSION	120
+#define GURU_MEDITATION_VERSION	121
 
 // Uncomment either ONE or NEITHER of these lines, depending on if you are using PDCurses/NCurses, or if your application is a non-Curses console app.
 #define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
 //#define GURU_USING_CONSOLE	// Uncomment this only if you are compiling a console-based application which is NOT using PDCurses or NCurses.
 
+#include <exception>
 #include <stack>
 #include <string>
 
@@ -60,6 +61,7 @@ void	affirm(int condition, std::string error);	// Like assert(), but calls a Gur
 void	close_syslog();				// Closes the Guru log file.
 void	console_ready(bool ready);	// Tells Guru whether or not the console is initialized and can handle rendering error messages.
 void	halt(std::string error);	// Stops the game and displays an error messge.
+void	halt(std::exception &e);	// As above, but with an exception instead of a string.
 void	intercept_signal(int sig);	// Catches a segfault or other fatal signal.
 void	log(std::string msg, int type = GURU_INFO);	// Logs a message in the system log file.
 void	nonfatal(std::string error, int type);	// Reports a non-fatal error, which will be logged and displayed in-game but will not halt execution unless it cascades.

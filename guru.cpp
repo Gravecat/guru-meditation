@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.2 -- 15th December 2019
+   RELEASE VERSION 1.21 -- 15th December 2019
 
 MIT License
 
@@ -178,6 +178,13 @@ void halt(std::string error)
 		}
 	}
 #endif
+}
+
+// As above, but with an exception instead of a string.
+void halt(std::exception &e)
+{
+	stack_trace();
+	guru::halt(e.what());
 }
 
 // Catches a segfault or other fatal signal.
