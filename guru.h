@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.11 -- 15th December 2019
+   RELEASE VERSION 1.2 -- 15th December 2019
 
 MIT License
 
@@ -26,7 +26,7 @@ SOFTWARE.
 
 #pragma once
 
-#define GURU_MEDITATION_VERSION	111
+#define GURU_MEDITATION_VERSION	120
 
 // Uncomment either ONE or NEITHER of these lines, depending on if you are using PDCurses/NCurses, or if your application is a non-Curses console app.
 #define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
@@ -56,6 +56,7 @@ struct StackTrace
 namespace guru
 {
 
+void	affirm(int condition, std::string error);	// Like assert(), but calls a Guru halt() if the condition is false.
 void	close_syslog();				// Closes the Guru log file.
 void	console_ready(bool ready);	// Tells Guru whether or not the console is initialized and can handle rendering error messages.
 void	halt(std::string error);	// Stops the game and displays an error messge.

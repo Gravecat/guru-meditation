@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.11 -- 15th December 2019
+   RELEASE VERSION 1.2 -- 15th December 2019
 
 MIT License
 
@@ -66,6 +66,13 @@ std::string		last_log_message;		// Records the last log message, to avoid spammi
 std::string		message;				// The error message.
 std::ofstream	syslog;					// The system log file.
 
+
+// Like assert(), but calls a Guru halt() if the condition is false.
+void affirm(int condition, std::string error)
+{
+	stack_trace();
+	if (!condition) guru::halt(error);
+}
 
 // Closes the Guru log file.
 void close_syslog()
