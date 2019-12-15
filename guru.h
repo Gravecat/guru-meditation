@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.01 -- 12th December 2019
+   RELEASE VERSION 1.1 -- 15th December 2019
 
 MIT License
 
@@ -27,7 +27,7 @@ SOFTWARE.
 #pragma once
 
 // Uncomment either ONE or NEITHER of these lines, depending on if you are using PDCurses/NCurses, or if your application is a non-Curses console app.
-//#define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
+#define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
 //#define GURU_USING_CONSOLE	// Uncomment this only if you are compiling a console-based application which is NOT using PDCurses or NCurses.
 
 #include <stack>
@@ -60,6 +60,6 @@ void	halt(std::string error);	// Stops the game and displays an error messge.
 void	intercept_signal(int sig);	// Catches a segfault or other fatal signal.
 void	log(std::string msg, int type = GURU_INFO);	// Logs a message in the system log file.
 void	nonfatal(std::string error, int type);	// Reports a non-fatal error, which will be logged and displayed in-game but will not halt execution unless it cascades.
-void	open_syslog();				// Opens the output log for messages.
+void	open_syslog(std::string filename = "");	// Opens the output log for messages.
 
 }	// namespace guru

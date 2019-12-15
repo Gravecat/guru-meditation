@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.01 -- 12th December 2019
+   RELEASE VERSION 1.1 -- 15th December 2019
 
 MIT License
 
@@ -46,8 +46,8 @@ SOFTWARE.
 #define CASCADE_WEIGHT_CRITICAL	4	// The amount a critical type log entry will add to the cascade timer.
 #define CASCADE_WEIGHT_ERROR	2	// The amount an error type log entry will add to the cascade timer.
 #define CASCADE_WEIGHT_WARNING	1	// The amount a warning type log entry will add to the cascade timer.
-#define COLOUR_PAIR_RED			1	// If using Curses, set this to the colour pair number which is red on a black background.
-#define FILENAME_LOG			"log.txt"
+#define COLOUR_PAIR_RED			2	// If using Curses, set this to the colour pair number which is red on a black background.
+#define FILENAME_LOG			"log.txt"	// The default name of the log file. Another filename can be specified with open_syslog().
 
 // Stack trace system.
 std::stack<const char*>	StackTrace::funcs;
@@ -256,10 +256,11 @@ void nonfatal(std::string error, int type)
 }
 
 // Opens the output log for messages.
-void open_syslog()
+void open_syslog(std::string filename)
 {
-	remove(FILENAME_LOG);
-	syslog.open(FILENAME_LOG);
+	if (!filename.size()) filename = FILENAME_LOG;
+	remove(filename.c_str());
+	syslog.open(filename.c_str());
 	log("Guru error-handling system is online. Hooking signals...");
 	if (signal(SIGABRT, intercept_signal) == SIG_ERR) halt("Failed to hook abort signal.");
 	if (signal(SIGSEGV, intercept_signal) == SIG_ERR) halt("Failed to hook segfault signal.");
