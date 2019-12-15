@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.1 -- 15th December 2019
+   RELEASE VERSION 1.11 -- 15th December 2019
 
 MIT License
 

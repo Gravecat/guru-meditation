@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.1 -- 15th December 2019
+   RELEASE VERSION 1.11 -- 15th December 2019
 
 MIT License
 
@@ -25,6 +25,8 @@ SOFTWARE.
 */
 
 #pragma once
+
+#define GURU_MEDITATION_VERSION	111
 
 // Uncomment either ONE or NEITHER of these lines, depending on if you are using PDCurses/NCurses, or if your application is a non-Curses console app.
 #define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
