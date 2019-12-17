@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.22 -- 15th December 2019
+   RELEASE VERSION 1.23 -- 15th December 2019
 
 MIT License
 
@@ -141,7 +141,6 @@ void halt(std::string error)
 	PANEL* guru_panel = new_panel(guru_window);
 	while(true)
 	{
-		log("loop");
 		if (redraw)
 		{
 			redraw = false;
