@@ -1,9 +1,9 @@
-/* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.23 -- 17th December 2019
+/* guru.cpp -- Guru error-handling and reporting system.
+   RELEASE VERSION 1.24 -- 29th August 2020
 
 MIT License
 
-Copyright (c) 2019 Raine Simmons.
+Copyright (c) 2019-2020 Raine "Gravecat" Simmons.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "guru.h"
+#include "guru.hpp"
 
 #include <chrono>
 #include <csignal>
@@ -176,6 +176,12 @@ void halt(std::string error)
 			exit(1);
 		}
 	}
+#endif
+
+#ifndef GURU_USING_CONSOLE
+#ifndef GURU_USING_CURSES
+	exit(1);
+#endif
 #endif
 }
 

@@ -1,9 +1,9 @@
-/* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.23 -- 17th December 2019
+/* guru.hpp -- Guru error-handling and reporting system.
+   RELEASE VERSION 1.24 -- 29th August 2020
 
 MIT License
 
-Copyright (c) 2019 Raine Simmons.
+Copyright (c) 2019-2020 Raine "Gravecat" Simmons.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,8 @@ SOFTWARE.
 namespace guru
 {
 
-#define GURU_MEDITATION_VERSION	121
-
 // Uncomment either ONE or NEITHER of these lines, depending on if you are using PDCurses/NCurses, or if your application is a non-Curses console app.
-#define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
+//#define GURU_USING_CURSES		// Uncomment this only if you are using PDCurses or NCurses.
 //#define GURU_USING_CONSOLE	// Uncomment this only if you are compiling a console-based application which is NOT using PDCurses or NCurses.
 
 // The stack-trace system. The advantage of this over traditional debug methods is that we can still strip symbol information (to keep the binary size down),
