@@ -1,5 +1,5 @@
 /* guru.cpp -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.24 -- 29th August 2020
+   RELEASE VERSION 1.3 -- 31st August 2020
 
 MIT License
 
@@ -24,10 +24,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "guru.hpp"
+#include "guru.h"
 
 #include <chrono>
 #include <csignal>
+#include <cstdarg>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <sstream>
@@ -41,6 +43,10 @@ SOFTWARE.
 #include <panel.h>
 #endif
 
+#ifdef GURU_USING_LIBTCOD
+#include "libtcod/libtcod.h"
+#endif
+
 namespace guru
 {
 
@@ -52,10 +58,12 @@ namespace guru
 #define COLOUR_PAIR_RED			2	// If using Curses, set this to the colour pair number which is red on a black background.
 #define FILENAME_LOG			"log.txt"	// The default name of the log file. Another filename can be specified with open_syslog().
 
+#ifdef GURU_USING_STACK_TRACE
 // Stack trace system.
 std::stack<const char*>	StackTrace::funcs;
 StackTrace::StackTrace(const char *func) { funcs.push(func); }
 StackTrace::~StackTrace() { if (!funcs.empty()) funcs.pop(); }
+#endif
 
 unsigned int	cascade_count = 0;		// Keeps track of rapidly-occurring, non-fatal error messages.
 bool			cascade_failure = false;	// Is a cascade failure in progress?
@@ -70,14 +78,18 @@ std::ofstream	syslog;					// The system log file.
 // Like assert(), but calls a Guru halt() if the condition is false.
 void affirm(int condition, std::string error)
 {
+#ifdef GURU_USING_STACK_TRACE
 	stack_trace();
+#endif
 	if (!condition) guru::halt(error);
 }
 
 // Closes the Guru log file.
 void close_syslog()
 {
+#ifdef GURU_USING_STACK_TRACE
 	stack_trace();
+#endif
 	log("Guru system shutting down.");
 	log("The rest is silence.");
 	syslog.close();
@@ -91,32 +103,39 @@ void console_ready(bool ready)
 }
 
 // Guru meditation error.
-void halt(std::string error)
+void halt(std::string error, ...)
 {
+#ifdef GURU_USING_STACK_TRACE
 	stack_trace();
-	auto guru_itos = [](unsigned int num) -> std::string {
-		stack_trace();
-		std::stringstream ss;
-		ss << num;
-		return ss.str();
-	};
+#endif
+
+	// Construct the error string, if needed.
+	va_list ap;
+	char *buffer = new char[error.size() + 1024];
+	va_start(ap, error);
+	vsprintf(buffer, error.c_str(), ap);
+	va_end(ap);
+	error = std::string(buffer);
+	delete[] buffer;
 
 	log("Software Failure, Halting Execution", GURU_CRITICAL);
 	log(error, GURU_CRITICAL);
 
+#ifdef GURU_USING_STACK_TRACE
 	if (StackTrace::funcs.size())
 	{
 		log("Stack trace follows:", GURU_STACK);
 		while(true)
 		{
-			log(guru_itos(StackTrace::funcs.size() - 1) + ": " + StackTrace::funcs.top(), GURU_STACK);
+			log(std::to_string(StackTrace::funcs.size() - 1) + ": " + StackTrace::funcs.top(), GURU_STACK);
 			if (StackTrace::funcs.size() > 1) StackTrace::funcs.pop();
 			else break;
 		}
 	}
+#endif
 
 #ifdef GURU_USING_CURSES
-	if (!fully_active) exit(1);
+	if (!fully_active) exit(EXIT_FAILURE);
 #ifdef PDCURSES
 	PDC_set_blink(true);
 #endif
@@ -125,14 +144,14 @@ void halt(std::string error)
 	if (dead_already)
 	{
 		log("Detected cleanup in process, attempting to die peacefully.", GURU_WARN);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	message = error;
 #ifdef GURU_USING_CONSOLE
 	printf("Software Failure, Halting Execution\n");
 	printf((message + "\n").c_str());
-	exit(1);
+	exit(EXIT_FAILURE);
 #endif
 #ifdef GURU_USING_CURSES
 	if (message.size() > 39) message = message.substr(0, 39);
@@ -173,14 +192,44 @@ void halt(std::string error)
 			delwin(guru_window);
 			endwin();
 			close_syslog();
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
+	}
+#endif
+
+#ifdef GURU_USING_LIBTCOD
+	TCODConsole guru_con(41, 7);
+	guru_con.setDefaultForeground(TCODColor::red);
+	bool flash_state = false;
+	int redraw_cycle = 50;
+	TCOD_key_t keypress;
+
+	auto redraw_guru_con = [&guru_con, &flash_state]()
+	{
+		guru_con.clear();
+		flash_state = !flash_state;
+		if (flash_state) guru_con.printFrame(0, 0, 41, 7, true, TCOD_BKGND_DEFAULT);
+		guru_con.printf(3, 2, "Software Failure: Halting Execution");
+		guru_con.printf(20 - (message.size() / 2), 4, message.c_str());
+	};
+
+	while (!TCODConsole::isWindowClosed() && keypress.vk != TCODK_ESCAPE)
+	{
+		if (++redraw_cycle >= 50)
+		{
+			redraw_cycle = 0;
+			redraw_guru_con();
+		}
+		TCODConsole::blit(&guru_con, 0, 0, 41, 7, TCODConsole::root, (TCODConsole::root->getWidth() / 2) - 20, (TCODConsole::root->getHeight() / 2) - 3);
+		TCODConsole::flush();
+		TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &keypress, nullptr);
+		TCODSystem::sleepMilli(10);
 	}
 #endif
 
 #ifndef GURU_USING_CONSOLE
 #ifndef GURU_USING_CURSES
-	exit(1);
+	exit(EXIT_FAILURE);
 #endif
 #endif
 }
@@ -188,14 +237,18 @@ void halt(std::string error)
 // As above, but with an exception instead of a string.
 void halt(std::exception &e)
 {
+#ifdef GURU_USING_STACK_TRACE
 	stack_trace();
+#endif
 	guru::halt(e.what());
 }
 
 // Catches a segfault or other fatal signal.
 void intercept_signal(int sig)
 {
+#ifdef GURU_USING_STACK_TRACE
 	stack_trace();
+#endif
 	std::string sig_type;
 	switch(sig)
 	{
@@ -215,34 +268,61 @@ void intercept_signal(int sig)
 }
 
 // Logs a message in the system log file.
-void log(std::string msg, int type)
+void log(std::string msg, int type, ...)
 {
 	if (!syslog.is_open()) return;
 	if (msg == last_log_message) return;
+
+	// Construct the log string, if needed.
+	va_list ap;
+	char *buffer = new char[msg.size() + 1024];
+	va_start(ap, type);
+	vsprintf(buffer, msg.c_str(), ap);
+	va_end(ap);
+	msg = std::string(buffer);
+	delete[] buffer;
+
 	last_log_message = msg;
 	std::string txt_tag;
 	switch(type)
 	{
-		case GURU_INFO: case GURU_STACK: break;
+		case GURU_INFO:
+#ifdef GURU_USING_STACK_TRACE
+		case GURU_STACK:
+#endif
+			break;
 		case GURU_WARN: txt_tag = "[WARN] "; break;
 		case GURU_ERROR: txt_tag = "[ERROR] "; break;
 		case GURU_CRITICAL: txt_tag = "[CRITICAL] "; break;
 	}
 
+	buffer = new char[32];
 	const time_t now = time(nullptr);
 	const tm *ptm = localtime(&now);
-	char buffer[32];
 	strftime(&buffer[0], 32, "%H:%M:%S", ptm);
 	std::string time_str = &buffer[0];
 	msg = "[" + time_str + "] " + txt_tag + msg;
 	syslog << msg << std::endl;
+	delete[] buffer;
 }
 
-// Reports a non-fatal error, which will be logged and displayed in-game but will not halt execution unless it cascades.
-void nonfatal(std::string error, int type)
+// Reports a non-fatal error, which will be logged but will not halt execution unless it cascades.
+void nonfatal(std::string error, int type, ...)
 {
 	if (cascade_failure) return;
+#ifdef GURU_USING_STACK_TRACE
 	stack_trace();
+#endif
+
+	// Construct the error string, if needed.
+	va_list ap;
+	char *buffer = new char[error.size() + 1024];
+	va_start(ap, type);
+	vsprintf(buffer, error.c_str(), ap);
+	va_end(ap);
+	error = std::string(buffer);
+	delete[] buffer;
+
 	unsigned int cascade_weight = 0;
 	switch(type)
 	{
