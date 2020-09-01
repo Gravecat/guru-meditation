@@ -1,5 +1,5 @@
 /* guru.cpp -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.3 -- 31st August 2020
+   RELEASE VERSION 1.31 -- 1st September 2020
 
 MIT License
 
@@ -28,7 +28,6 @@ SOFTWARE.
 
 #include <chrono>
 #include <csignal>
-#include <cstdarg>
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
@@ -103,21 +102,11 @@ void console_ready(bool ready)
 }
 
 // Guru meditation error.
-void halt(std::string error, ...)
+void halt(std::string error)
 {
 #ifdef GURU_USING_STACK_TRACE
 	stack_trace();
 #endif
-
-	// Construct the error string, if needed.
-	va_list ap;
-	char *buffer = new char[error.size() + 1024];
-	va_start(ap, error);
-	vsprintf(buffer, error.c_str(), ap);
-	va_end(ap);
-	error = std::string(buffer);
-	delete[] buffer;
-
 	log("Software Failure, Halting Execution", GURU_CRITICAL);
 	log(error, GURU_CRITICAL);
 
@@ -268,19 +257,10 @@ void intercept_signal(int sig)
 }
 
 // Logs a message in the system log file.
-void log(std::string msg, int type, ...)
+void log(std::string msg, int type)
 {
 	if (!syslog.is_open()) return;
 	if (msg == last_log_message) return;
-
-	// Construct the log string, if needed.
-	va_list ap;
-	char *buffer = new char[msg.size() + 1024];
-	va_start(ap, type);
-	vsprintf(buffer, msg.c_str(), ap);
-	va_end(ap);
-	msg = std::string(buffer);
-	delete[] buffer;
 
 	last_log_message = msg;
 	std::string txt_tag;
@@ -296,7 +276,7 @@ void log(std::string msg, int type, ...)
 		case GURU_CRITICAL: txt_tag = "[CRITICAL] "; break;
 	}
 
-	buffer = new char[32];
+	char* buffer = new char[32];
 	const time_t now = time(nullptr);
 	const tm *ptm = localtime(&now);
 	strftime(&buffer[0], 32, "%H:%M:%S", ptm);
@@ -307,21 +287,12 @@ void log(std::string msg, int type, ...)
 }
 
 // Reports a non-fatal error, which will be logged but will not halt execution unless it cascades.
-void nonfatal(std::string error, int type, ...)
+void nonfatal(std::string error, int type)
 {
 	if (cascade_failure) return;
 #ifdef GURU_USING_STACK_TRACE
 	stack_trace();
 #endif
-
-	// Construct the error string, if needed.
-	va_list ap;
-	char *buffer = new char[error.size() + 1024];
-	va_start(ap, type);
-	vsprintf(buffer, error.c_str(), ap);
-	va_end(ap);
-	error = std::string(buffer);
-	delete[] buffer;
 
 	unsigned int cascade_weight = 0;
 	switch(type)

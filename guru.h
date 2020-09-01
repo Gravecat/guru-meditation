@@ -1,5 +1,5 @@
 /* guru.h -- Guru error-handling and reporting system.
-   RELEASE VERSION 1.3 -- 31st August 2020
+   RELEASE VERSION 1.31 -- 1st September 2020
 
 MIT License
 
@@ -68,11 +68,11 @@ struct StackTrace
 void	affirm(int condition, std::string error);	// Like assert(), but calls a Guru halt() if the condition is false.
 void	close_syslog();				// Closes the Guru log file.
 void	console_ready(bool ready);	// Tells Guru whether or not the console is initialized and can handle rendering error messages.
-void	halt(std::string error, ...);	// Stops the game and displays an error messge.
+void	halt(std::string error);	// Stops the game and displays an error messge.
 void	halt(std::exception &e);	// As above, but with an exception instead of a string.
 void	intercept_signal(int sig);	// Catches a segfault or other fatal signal.
-void	log(std::string msg, int type = GURU_INFO, ...);	// Logs a message in the system log file.
-void	nonfatal(std::string error, int type, ...);	// Reports a non-fatal error, which will be logged but will not halt execution unless it cascades.
+void	log(std::string msg, int type = GURU_INFO);	// Logs a message in the system log file.
+void	nonfatal(std::string error, int type);	// Reports a non-fatal error, which will be logged but will not halt execution unless it cascades.
 void	open_syslog(std::string filename = "");	// Opens the output log for messages.
 
 }	// namespace guru
